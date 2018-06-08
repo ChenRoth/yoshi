@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const https = require('https');
+const detect = require('detect-port');
 const express = require('express');
 const webpack = require('webpack');
 const webpackDevMiddleware = require('webpack-dev-middleware');
@@ -9,8 +10,10 @@ const { decorate } = require('./server-api');
 const { shouldRunWebpack, logStats, normalizeEntries } = require('./utils');
 const { getListOfEntries } = require('../../utils');
 
+let actualPort;
+
 module.exports = ({
-  port = '3000',
+  port = 3200,
   ssl,
   hmr = true,
   transformHMRRuntime,
@@ -21,7 +24,7 @@ module.exports = ({
   configuredEntry,
   defaultEntry,
 } = {}) => {
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
     let middlewares = [];
 
     if (webpackConfigPath) {
@@ -80,11 +83,16 @@ module.exports = ({
 
     const app = express();
 
-    decorate({ app, middlewares, host, port, statics });
+    actualPort = actualPort || (await detect(port));
+    decorate({ app, middlewares, host, port: actualPort, statics });
 
     const serverFactory = ssl ? httpsServer(app) : app;
 
-    serverFactory.listen(port, host, err => (err ? reject(err) : resolve()));
+    serverFactory.listen(
+      actualPort,
+      host,
+      err => (err ? reject(err) : resolve()),
+    );
   });
 };
 

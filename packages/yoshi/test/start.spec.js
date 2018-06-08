@@ -369,6 +369,27 @@ describe('Aggregator: Start', () => {
         });
       });
 
+      describe('when the defined port is taken', () => {
+        let server;
+
+        beforeEach(() => (server = takePort(3005)));
+        afterEach(() => server.close());
+
+        it('it should use the next available port', () => {
+          child = test
+            .setup({
+              'src/assets/test.json': '{a: 1}',
+              'index.js': `var a = 1;`,
+              'package.json': fx.packageJson({
+                servers: { cdn: { port: 3005 } },
+              }),
+            })
+            .spawn('start');
+
+          return cdnIsServing('assets/test.json', 3006);
+        });
+      });
+
       describe('HTTPS', () => {
         // This is because we're using self signed certificate - otherwise the request will fail
         const agent = new https.Agent({
