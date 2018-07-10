@@ -13,7 +13,7 @@ const config = {
     modules: ['node_modules', context],
     alias: {
       [projectConfig.name()]: path.resolve(context, '../'),
-      ...projectConfig.resolveAlias()
+      ...projectConfig.resolveAlias(),
     },
     extensions: ['.js', '.jsx', '.ts', '.tsx', '.json'],
     symlinks: false,
